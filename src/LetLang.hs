@@ -3,8 +3,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 
--- | TODO: move to Parsec, so we can use
--- a state monad to contain deBrujin information
+-- TODO: separate out AST from ABT
 module LetLang where
 
 import Control.Applicative
