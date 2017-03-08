@@ -36,13 +36,30 @@ spec = do
   describe "printABT" $ do
     it "should work" $ do
       printABT (Prim True) `shouldBe` "True"
-      printABT (Let "x" (Prim True) (Let "y" (Prim False) (Var "y" 1))) 
+      printABT (Let "x" (Prim True) (Let "y" (Prim False) (Var "y" 1)))
         `shouldBe` "let x = { True } in { let y = { False } in { y } }"
 
-  describe "parseABT" $ do
+  describe "parseAST" $ do
     it "should work" $ do
-      parseABT "True" `shouldBe` Right (Prim True)
-      parseABT "let foo = { True } in { False }" 
+      parseAST "True" `shouldBe` Right (Prim True)
+      parseAST "let foo = { True } in { False }"
         `shouldBe` Right (Let "foo" (Prim True) (Prim False))
-      parseABT "let x = { True } in { let y = { False } in { y } }"
-        `shouldBe` Right (Let "x" (Prim True) (Let "y" (Prim False) (Var "y" 1))) 
+      parseAST "let x = { True } in { let y = { False } in { y } }"
+        `shouldBe` Right (Let "x" (Prim True) (Let "y" (Prim False) (Var "y" ())))
+
+  describe "resolveNames" $ do
+    it "should work for ASTs without binding" $ do
+      resolveNames       (Prim True)
+        `shouldBe` Right (Prim True)
+      resolveNames       (Prim True)
+        `shouldBe` Right (Prim True)
+
+    it "should work for ASTs with binding" $ do
+      resolveNames       (Let "x" (Prim True) (Let "y" (Prim False) (Var "x" ())))
+        `shouldBe` Right (Let "x" (Prim True) (Let "y" (Prim False) (Var "x" 0)))
+      resolveNames       (Let "x" (Prim True) (Let "y" (Prim False) (Var "y" ())))
+        `shouldBe` Right (Let "x" (Prim True) (Let "y" (Prim False) (Var "y" 1)))
+
+    it "should work for ASTs with binding and shadowing" $ do
+      resolveNames       (Let "x" (Prim True) (Let "x" (Prim False) (Var "x" ())))
+        `shouldBe` Right (Let "x" (Prim True) (Let "x" (Prim False) (Var "x" 1)))

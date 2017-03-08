@@ -14,6 +14,8 @@ library:
   - base >=4.7 && <5
   - attoparsec
   - text
+  - unordered-containers
+  - mtl
 executables:
   letlang:
     main: Main.hs
