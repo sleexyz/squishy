@@ -75,16 +75,18 @@ astParser =
   where
     letParser :: Parser AST
     letParser = do
-      P.string "let" >> P.skipSpace
+      P.string "let"
+      P.skipSpace
       n <- P.takeTill isSpace
-      P.skipSpace >> P.char '=' >> P.skipSpace
-      P.skipSpace >> P.char '{' >> P.skipSpace
+      P.skipSpace
+      P.char '='
+      P.skipSpace
       x <- astParser
-      P.skipSpace >> P.char '}' >> P.skipSpace
+      P.skipSpace
       P.string "in"
-      P.skipSpace >> P.char '{' >> P.skipSpace
+      P.skipSpace
       y <- astParser
-      P.skipSpace >> P.char '}' >> P.skipSpace
+      P.skipSpace
       return $ Let n x y
 
     primParser :: Parser AST
@@ -99,7 +101,7 @@ astParser =
 printABT :: ABT -> Text
 printABT = \case
   Var n _ -> n
-  Let n x y  -> "let " <> n <> " = { " <> printABT x <> " } in { " <> printABT y <> " }"
+  Let n x y  -> "let " <> n <> " = " <> printABT x <> " in\n" <> printABT y
   Prim True -> "True"
   Prim False -> "False"
 

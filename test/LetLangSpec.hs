@@ -37,14 +37,14 @@ spec = do
     it "should work" $ do
       printABT (Prim True) `shouldBe` "True"
       printABT (Let "x" (Prim True) (Let "y" (Prim False) (Var "y" 1)))
-        `shouldBe` "let x = { True } in { let y = { False } in { y } }"
+        `shouldBe` "let x = True in\nlet y = False in\ny"
 
   describe "parseAST" $ do
     it "should work" $ do
       parseAST "True" `shouldBe` Right (Prim True)
-      parseAST "let foo = { True } in { False }"
+      parseAST "let foo = True in False"
         `shouldBe` Right (Let "foo" (Prim True) (Prim False))
-      parseAST "let x = { True } in { let y = { False } in { y } }"
+      parseAST "let x = True in\nlet y = False in y"
         `shouldBe` Right (Let "x" (Prim True) (Let "y" (Prim False) (Var "y" ())))
 
   describe "resolveNames" $ do
