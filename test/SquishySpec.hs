@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module LetLangSpec where
+module SquishySpec where
 
 import Test.Hspec
 import LetLang

@@ -1,11 +1,11 @@
-name: letlang
+name: squishy
 version: '0.1.0.0'
 category: Web
 author: Sean Lee
 maintainer: freshdried@gmail.com
 copyright: 2017 Sean Lee
 license: BSD3
-github: sleexyz/letlang
+github: sleexyz/squishy
 extra-source-files:
 - README.md
 library:

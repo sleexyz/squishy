@@ -5,7 +5,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module LetLang where
+module Squishy where
 
 import Control.Applicative
 import Data.Attoparsec.Text (Parser)
