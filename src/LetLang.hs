@@ -18,12 +18,12 @@ import Data.Monoid
 import Data.Text (Text)
 import Control.Monad.Error.Class
 
-data ASTInternal i where
-  Var :: Text -> i -> ASTInternal i
-  Let :: Text -> ASTInternal i -> ASTInternal i -> ASTInternal i
-  Prim :: Bool -> ASTInternal i
-deriving instance (Eq i) => (Eq (ASTInternal i))
-deriving instance (Show i) => (Show (ASTInternal i))
+data ASTInternal index where
+  Var :: Text -> index -> ASTInternal index
+  Let :: Text -> ASTInternal index -> ASTInternal index -> ASTInternal index
+  Prim :: Bool -> ASTInternal index
+deriving instance (Eq index) => (Eq (ASTInternal index))
+deriving instance (Show index) => (Show (ASTInternal index))
 
 type AST = ASTInternal ()
 
