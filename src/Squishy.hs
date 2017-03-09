@@ -2,20 +2,22 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Squishy where
 
+import Control.Applicative
+import Control.Monad
 import Data.Char (isSpace)
 import Data.Function
-import Data.HashMap.Lazy (HashMap)
-import qualified Data.HashMap.Lazy as HashMap
 import Data.Monoid
 import Data.Text (Text)
-import Control.Monad.Error.Class
+import qualified Data.Text as Text
+import Control.Lens.Plated as Plated
 
 import Squishy.Types
+import Squishy.Parser
+import Squishy.NameResolution
 
 -- FIXME: check for more than just validity of debrujin indicies
 isValidExpr :: ABT -> Bool
@@ -31,22 +33,32 @@ isValidExpr = isValidExprGivenMax (-1)
 -- * Semantics
 
 subst :: Index -> ABT -> ABT -> ABT
-subst i x = \case
-  Var _ j | j == i ->  x
+subst i x = Plated.transform $ \case
+  Var _ j | j == i -> x
   Var n j | j > i ->  Var n (j - 1)
-  Var n j | otherwise -> Var n j
-  Let n y rest -> Let n (subst i x y) (subst i x rest)
-  Prim x -> Prim x
+  x -> x
 
 reduce :: ABT -> ABT
-reduce = id
+reduce x = head (iterateRight step x)
+
+getReductionSteps :: ABT -> [ABT]
+getReductionSteps x = iterateRight step x
+
+iterateRight :: (Alternative f) => (a -> Either a a) -> a -> f a
+iterateRight f x = case f x of
+  Left y -> pure y
+  Right y -> iterateRight f y <|> pure y
+
+-- | Left indicates no recursion
+-- Right indicates recursion
+step :: ABT -> Either ABT ABT
+step = Left
   & handleLet
   where
-    handleLet :: (ABT -> ABT) -> (ABT -> ABT)
+    handleLet :: (ABT -> Either ABT ABT) -> (ABT -> Either ABT ABT)
     handleLet fallback = \case
-      Let _ y rest -> reduce $ subst 0 y rest
+      Let _ y rest -> Right (subst 0 y rest)
       x -> fallback x
-
 
 -- * Printing
 
@@ -57,30 +69,13 @@ printABT = \case
   Prim True -> "True"
   Prim False -> "False"
 
--- * Name Resolution
 
-resolveNames :: AST -> Either String ABT
-resolveNames = resolveNamesWithContext emptyContext
-
-emptyContext :: Context
-emptyContext = MkContext { indexMap, lastIndex }
-  where
-    indexMap = HashMap.empty
-    lastIndex = -1
-
-addBinderToContext :: Text -> Context -> Context
-addBinderToContext n ctx@MkContext { indexMap, lastIndex } = ctx { indexMap=indexMap', lastIndex=lastIndex'}
-  where
-    indexMap' = HashMap.insert n (lastIndex + 1) indexMap
-    lastIndex' = lastIndex + 1
-
-resolveNamesWithContext :: Context -> AST -> Either String ABT
-resolveNamesWithContext ctx@MkContext{ indexMap, lastIndex } = \case
-  Var n () -> case HashMap.lookup n indexMap of
-    Just i -> return (Var n i)
-    Nothing -> throwError ("Cannot resolve " <> show n)
-  Let n x y -> do
-    x' <- resolveNamesWithContext ctx x
-    y' <- resolveNamesWithContext (addBinderToContext n ctx) y
-    return (Let n x' y')
-  Prim n -> return (Prim n)
+integrate :: Text -> Text
+integrate x = case (parseAST >=> resolveNames) x of
+  Left x -> x
+    & (Text.pack                  :: String -> Text)
+  Right x -> x
+    & (getReductionSteps          :: ABT -> [ABT])
+    & (fmap printABT              :: [ABT] -> [Text])
+    & (reverse                    :: [Text] -> [Text])
+    & (Text.intercalate "\n\n"    :: [Text] -> Text)

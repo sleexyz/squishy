@@ -6,6 +6,7 @@ import Test.Hspec
 import Squishy
 import Squishy.Types
 import Squishy.Parser
+import Squishy.NameResolution
 
 spec :: Spec
 spec = do
