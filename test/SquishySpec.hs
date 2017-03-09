@@ -3,7 +3,9 @@
 module SquishySpec where
 
 import Test.Hspec
-import LetLang
+import Squishy
+import Squishy.Types
+import Squishy.Parser
 
 spec :: Spec
 spec = do

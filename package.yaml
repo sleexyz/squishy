@@ -17,7 +17,7 @@ library:
   - unordered-containers
   - mtl
 executables:
-  letlang:
+  squishy:
     main: Main.hs
     source-dirs: app
     ghc-options:
@@ -26,9 +26,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - base
-    - letlang
+    - squishy
 tests:
-  letlang-test:
+  squishy-test:
     main: Spec.hs
     source-dirs: test
     ghc-options:
@@ -37,5 +37,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - base
-    - letlang
+    - squishy
     - hspec

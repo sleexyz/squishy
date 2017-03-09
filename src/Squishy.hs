@@ -7,9 +7,6 @@
 
 module Squishy where
 
-import Control.Applicative
-import Data.Attoparsec.Text (Parser)
-import qualified Data.Attoparsec.Text as P
 import Data.Char (isSpace)
 import Data.Function
 import Data.HashMap.Lazy (HashMap)
@@ -18,19 +15,7 @@ import Data.Monoid
 import Data.Text (Text)
 import Control.Monad.Error.Class
 
-data ASTInternal index where
-  Var :: Text -> index -> ASTInternal index
-  Let :: Text -> ASTInternal index -> ASTInternal index -> ASTInternal index
-  Prim :: Bool -> ASTInternal index
-deriving instance (Eq index) => (Eq (ASTInternal index))
-deriving instance (Show index) => (Show (ASTInternal index))
-
-type AST = ASTInternal ()
-
-newtype Index = MkIndex Int
-  deriving (Num, Eq, Show, Ord)
-
-type ABT = ASTInternal Index
+import Squishy.Types
 
 -- FIXME: check for more than just validity of debrujin indicies
 isValidExpr :: ABT -> Bool
@@ -62,39 +47,6 @@ reduce = id
       Let _ y rest -> reduce $ subst 0 y rest
       x -> fallback x
 
--- * Parsing
-
-parseAST :: Text -> Either String AST
-parseAST = P.parseOnly astParser
-
-astParser :: Parser AST
-astParser =
-      letParser
-  <|> primParser
-  <|> varParser
-  where
-    letParser :: Parser AST
-    letParser = do
-      P.string "let"
-      P.skipSpace
-      n <- P.takeTill isSpace
-      P.skipSpace
-      P.char '='
-      P.skipSpace
-      x <- astParser
-      P.skipSpace
-      P.string "in"
-      P.skipSpace
-      y <- astParser
-      P.skipSpace
-      return $ Let n x y
-
-    primParser :: Parser AST
-    primParser = (P.string "True" >> return (Prim True))
-      <|> (P.string "False" >> return (Prim False))
-
-    varParser :: Parser AST
-    varParser = Var <$> (P.takeWhile (/= ' ')) <*> pure ()
 
 -- * Printing
 
@@ -109,11 +61,6 @@ printABT = \case
 
 resolveNames :: AST -> Either String ABT
 resolveNames = resolveNamesWithContext emptyContext
-
-data Context = MkContext {
-  indexMap :: HashMap Text Index,
-  lastIndex :: Index
-}
 
 emptyContext :: Context
 emptyContext = MkContext { indexMap, lastIndex }
