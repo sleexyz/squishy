@@ -19,7 +19,7 @@ import Squishy.Types
 import Squishy.Parser
 import Squishy.NameResolution
 
--- FIXME: check for more than just validity of debrujin indicies
+-- FIXME: check for more than just validity of debrujin levels
 isValidExpr :: ABT -> Bool
 isValidExpr = isValidExprGivenMax (-1)
   where
@@ -36,7 +36,7 @@ subst :: Index -> ABT -> ABT -> ABT
 subst i x = Plated.transform $ \case
   Var _ j | j == i -> x
   Var n j | j > i ->  Var n (j - 1)
-  x -> x
+  y -> y
 
 reduce :: ABT -> ABT
 reduce x = head (iterateRight step x)
