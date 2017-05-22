@@ -19,7 +19,6 @@ import Squishy.Types
 import Squishy.Parser
 import Squishy.NameResolution
 
--- FIXME: check for more than just validity of debrujin levels
 isValidExpr :: ABT -> Bool
 isValidExpr = isValidExprGivenMax (-1)
   where
@@ -39,7 +38,14 @@ subst i x = Plated.transform $ \case
   y -> y
 
 reduce :: ABT -> ABT
+-- reduce = rewrite step' -- TODO: figure out how to use rewrite
 reduce x = head (iterateRight step x)
+
+step' :: ABT -> Maybe ABT
+step' = \case
+  Let _ y rest -> Just (subst 0 y rest)
+  x -> Nothing
+
 
 getReductionSteps :: ABT -> [ABT]
 getReductionSteps x = iterateRight step x
@@ -54,11 +60,11 @@ iterateRight f x = case f x of
 step :: ABT -> Either ABT ABT
 step = Left
   & handleLet
-  where
-    handleLet :: (ABT -> Either ABT ABT) -> (ABT -> Either ABT ABT)
-    handleLet fallback = \case
-      Let _ y rest -> Right (subst 0 y rest)
-      x -> fallback x
+
+handleLet :: (ABT -> Either ABT ABT) -> (ABT -> Either ABT ABT)
+handleLet fallback = \case
+  Let _ y rest -> Right (subst 0 y rest)
+  x -> fallback x
 
 -- * Printing
 
